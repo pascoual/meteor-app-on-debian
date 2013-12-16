@@ -1,0 +1,566 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+	<title>Shower Presentation Engine</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=792, user-scalable=no">
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
+	<link rel="stylesheet" href="shower/themes/ribbon/styles/screen.css">
+</head>
+<body class="list">
+	<header class="caption">
+		<h1 style="color: white">Application Meteor sur Debian</h1>
+		<p style="color: white">Pascal Richier & Morea.fr</p>
+	</header>
+	<section class="slide cover" id="Cover"><div>
+		<h2>Application Meteor sur Debian</h2>
+		<p><strong>Présenté par Pascal Richier & <a href="http://www.morea.fr" style="border-bottom: none;">www.morea.fr</a></strong></p>
+		<img src="pictures/slide11.jpg" alt="">
+		<!--
+			To apply styles to the certain slides
+			set slide ID to get needed elements
+			-->
+		<style>
+			#Cover h2 {
+				margin:30px 0 0;
+				color:#FFF;
+				text-align:center;
+				font-size:70px;
+				}
+			#Cover p {
+				margin:10px 0 0;
+				text-align:center;
+				color:#FFF;
+				font-style:italic;
+				font-size:20px;
+				}
+				#Cover p a {
+					color:#FFF;
+					}
+		</style>
+	</div></section>
+	<section class="slide"><div>
+        <img src="pictures/morea.jpg" class="imgmorea">
+        <p class="imgmorea">Conception et infogérance d’infrastructures critiques</p>
+		<h2>Les étapes d'installation & configuration</h2>
+		<ol>
+			<li>MongoDB</li>
+            <li class="next">Node.js & npm</li>
+            <li class="next">NGinX</li>
+            <li class="next">Forever</li>
+            <li class="next">Demeteorizer (env. de DEV uniquement)</li>
+            <li class="next">Un script de démarrage</li>
+            <li class="next">Des outils pour débuter le backup et le monitoring</li>
+		</ol>
+        <p class="next" style="position: absolute; top: 250px;right: 200px">Le tout, sans compilation<br>sous <strong>Debian 7.2 Wheezy</strong></p>
+	</div></section>
+    
+	<section class="slide" id="mongodb"><div>
+        <img src="pictures/morea.jpg" class="imgmorea">
+        <p class="imgmorea">Conception et infogérance d’infrastructures critiques</p>
+		<h2>MongoDB : installation</h2>
+		<p>Dernière version de MongoDB disponible depuis <a href="http://docs.mongodb.org/manual/tutorial/install-mongodb-on-debian/">les dépôts MongoDB</a></p>
+        <pre>
+			<code>$ # Importer la clé PGP de MongoDB</code>
+            <code>$ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10</code>
+			<code>$ # Créer un fichier sources.list pour MongoBD</code>
+            <code>$ echo 'deb http://downloads-distro.mongodb.org/repo/debian-sysvinit dist 10gen' | <br>sudo tee /etc/apt/sources.list.d/mongodb.list</code>
+			<code>$ # Recharger la liste des paquets et installer MongoBD</code>
+			<code>$ sudo apt-get update</code>
+            <code>$ sudo apt-get install mongodb-10gen</code>
+		</pre>
+		<style>
+			#mongodb pre, #mongodb pre code {
+				font-size: 18px;
+                line-height: 39px;
+				}
+            #mongodb h2 {
+                margin-bottom: 20px;
+            }
+        </style>
+	</div></section>
+	<section class="slide" id="mongodbconf"><div>
+        <img src="pictures/morea.jpg" class="imgmorea">
+        <p class="imgmorea">Conception et infogérance d’infrastructures critiques</p>
+		<h2>MongoDB : configuration du compte admin</h2>
+        <p class="note">Si vous utilisez un firewall et que vous ne donnez pas accès au port 27017 de votre serveur, vous pouvez sauter cette étape.</p>
+        <pre>
+            <code>$ # Lancer un MongoDB shell</code>
+            <code>$ mongo</code>
+            <code>   # Sélection de la base de données admin</code>
+            <code>   db = db.getSiblingDB('admin')</code>
+            <code>   # Ajout du compte administrateur</code>
+            <code>   db.addUser({user: "adminuser", pwd: "<mark class="important">myPWD</mark>", roles: ["userAdminAnyDatabase"<!--mark class="important">, "userAdmin"</mark-->]})</code>
+            <code>   # Quitter le shell </code>
+            <code>   exit</code>
+        </pre>
+		<style>
+            #mongodbcong .slide p {
+                margin-bottom: 0px !important;
+            }
+			#mongodbconf pre, #mongodbconf pre code {
+				font-size: 18px;
+                line-height: 35px;
+				}
+            #mongodbconf .note {
+                font-size: 14px;
+                margin-top: 0px;
+                margin-bottom: 50px;
+            }
+        </style>
+	</div></section>
+    
+	<section class="slide" id="mongodbconf2"><div>
+        <img src="pictures/morea.jpg" class="imgmorea">
+        <p class="imgmorea">Conception et infogérance d’infrastructures critiques</p>
+		<h2>MongoDB : activation du mode authentifié</h2>
+        <p style="margin-top: -20px; margin-bottom: 25px">Édition de la configuration : /etc/mongodb.conf</p>
+        <pre>
+            <code>dbpath=/var/lib/mongodb</code>
+            <code>logpath=/var/log/mongodb/mongodb.log</code>
+            <code>logappend=true</code>
+            <code>#port = 27017</code>
+            <code># Disables write-ahead journaling</code>
+            <code># nojournal = true</code>
+            <code># Turn on/off security.  Off is currently the default</code>
+            <code>#noauth = false</code>
+            <code><mark class="important">auth = true</mark></code>
+        </pre>
+        <p style="font-size: 18px; margin-top: -40px;">Ne pas oublier de relancer MongoDB :<code>sudo /etc/init.d/mongodb restart</code> </p>
+		<style>
+			#mongodbconf2 pre {
+                margin-top: -15px;
+            }
+			#mongodbconf2 pre, #mongodbconf2 pre code {
+				font-size: 18px;
+                line-height: 35px;
+				}
+        </style>
+	</div></section>
+    
+	<section class="slide" id="mongodbconfforapp"><div>
+        <img src="pictures/morea.jpg" class="imgmorea">
+        <p class="imgmorea">Conception et infogérance d’infrastructures critiques</p>
+		<h2>MongoDB : utilisateur et base</h2>
+        <pre>
+            <code>$ # Connection avec le compte admin</code>
+            <code>$ mongo -u adminuser -p --authenticationDatabase admin</code>
+<code>   MongoDB shell version: 2.4.8</code>
+<code>   Enter password:</code>
+<code>   connecting to: test</code>
+<code>   ></code>
+            <code>   # Sélection de la base de données testdatabase</code>
+            <code>   use <mark class="important">testdatabase</mark></code>
+            <code>   # Ajout d'un compte pour notre application</code>
+            <code>   db.addUser({ user: "<mark class="important">testuser</mark>", pwd: "<mark class="important">testuserpass</mark>", roles: [ "readWrite", "<mark class="important">userAdmin</mark>"] })</code>
+            <code>   # Sortons du shell </code>
+            <code>   exit</code>
+        </pre>
+		<style>
+            #mongodbconfforapp pre {
+                margin-left: -40px;
+            }
+			#mongodbconfforapp pre, #mongodbconfforapp pre code {
+				font-size: 17px;
+                line-height: 30px;
+				}
+            #mongodbconfforapp .note {
+                font-size: 12px;
+                margin-top: -20px;
+                margin-bottom: 50px;
+            }
+        </style>
+	</div></section>
+    
+	<section class="slide" id="nodenpm"><div>
+        <img src="pictures/morea.jpg" class="imgmorea">
+        <p class="imgmorea">Conception et infogérance d’infrastructures critiques</p>
+		<h2>Node & npm : installation</h2>
+        <p style="margin-top: -20px; margin-bottom: 25px">Via les dépôts <a href="www.backports.debian.org" target="_blank">Backports.debian.org</a></p>
+        <pre>
+            <code>$ # Ajout des dépôts <mark class="important">Backports</mark> et rechargement de la liste des paquets</code>
+            <code>$ echo "deb http://ftp.us.debian.org/debian wheezy-backports main" >>
+/etc/apt/sources.list</code>
+            <code>$ apt-get update</code>
+            <code>$ # Installation de <mark class="important">Node</mark></code>
+            <code>$ apt-get install nodejs-legacy</code>
+            <code>$ # Installation de <mark class="important">npm</mark></code>
+            <code>$ curl https://npmjs.org/install.sh | sh</code>
+        </pre>
+        <p style="font-size: 18px; margin-top: -40px;">Rappel : les paquets Backports ne sont pas prioritaires !</p>
+		<style>
+			#nodenpm pre, #nodenpm pre code {
+				font-size: 18px;
+                line-height: 35px;
+				}
+        </style>
+	</div></section>
+    
+	<section class="slide" id="nodenpmbug"><div>
+        <img src="pictures/morea.jpg" class="imgmorea">
+        <p class="imgmorea">Conception et infogérance d’infrastructures critiques</p>
+		<h2>Node & npm : petit bug</h2>
+        <p style="margin-top: -20px; margin-bottom: 25px">Si l'installation de npm échoue car il ne trouve pas Node</p>
+        <pre>
+            <code>$ ln -s /usr/bin/<mark class="important">nodejs</mark> /usr/bin/<mark class="important">node</mark></code>
+            <code>$ ln -s /usr/lib/<mark class="important">nodejs</mark> /usr/lib/<mark class="important">node</mark></code>
+        </pre>
+        <p style="font-size: 18px; margin-top: -40px;">npm cherche <mark class="important">node</mark>, or il est installé sous <mark class="important">nodejs</mark></p>
+        <p>Relancer l'installation de npm</p>
+        <pre style="margin-top: -32px">
+            <code>$ curl https://npmjs.org/install.sh | sh</code>
+        </pre>
+		<style>
+			#nodenpmbug pre, #nodenpmbug pre code {
+				font-size: 18px;
+                line-height: 35px;
+				}
+        </style>
+	</div></section>
+    
+	<section class="slide" id="nginx"><div>
+        <img src="pictures/morea.jpg" class="imgmorea">
+        <p class="imgmorea">Conception et infogérance d’infrastructures critiques</p>
+		<h2>NGinX : installation</h2>
+        <p style="margin-top: -20px; margin-bottom: 25px">Via les dépôts <a href="http://www.dotdeb.org/instructions/" target="_blank">Dotdeb</a></p>
+        <pre>
+            <code>$ # Ajout des dépôts <mark class="important">Dotdeb</mark> et rechargement de la liste des paquets</code>
+            <code>$ echo "http://packages.dotdeb.org wheezy all" >> /etc/apt/sources.list</code>
+            <code>$ wget http://www.dotdeb.org/dotdeb.gpg</code>
+            <code>$ apt-key add dotdeb.gpg # la clé GnuPG de Dotdeb</code>
+            <code>$ apt-get update</code>
+            <code>$ # Installation de <mark class="important">NGinX</mark></code>
+            <code>$ apt-get install nginx</code>
+        </pre>
+		<style>
+			#nginx pre, #nginx pre code {
+				font-size: 18px;
+                line-height: 35px;
+				}
+        </style>
+	</div></section>
+    
+	<section class="slide" id="nginxhost"><div>
+        <img src="pictures/morea.jpg" class="imgmorea">
+        <p class="imgmorea">Conception et infogérance d’infrastructures critiques</p>
+		<h2>NGinX : conf. des vhosts à la Apache2</h2>
+		<ol>
+			<li>Création des répertoires
+            <pre>
+                <code>$ mkdir /etc/nginx/sites-available /etc/nginx/sites-enabled</code>
+            </pre></li>
+			<li class="next">Editer la configuration de NGinX : /etc/nginx/nginx.conf
+        <pre>
+            <code>...</code>
+<code>http {</code>
+<code>    ...</code>
+<code>    <mark class="important">include sites-enabled/*;</mark></code>
+<code>}</code>
+        </pre>
+            </li>
+		</ol>
+		<style>
+			#nginxhost pre{
+				font-size: 18px;
+                line-height: 35px;
+                margin-top: 0px;
+                margin-left: 50px;
+				}
+			#nginxhost code{
+                line-height: 35px;
+            }
+            #nginxhost p {
+                margin-top: -30px;
+            }
+        </style>
+	</div></section>
+    
+	<section class="slide" id="nginxmyhost"><div>
+        <img src="pictures/morea.jpg" class="imgmorea">
+        <p class="imgmorea">Conception et infogérance d’infrastructures critiques</p>
+		<h2>NGinX : créer un virtual host</h2>
+        <p>Ajout d'un fichier /etc/nginx/sites-available/my-meteor-app.com</p>
+        <pre>
+            <code>upstream <mark class="important">my_meteor_app</mark> {</code>
+<code>        server 127.0.0.1:<mark class="important">58080</mark>;</code>
+<code>}</code>
+<code>server {</code>
+<code>        listen 0.0.0.0:80;</code>
+<code>        server_name <mark class="important">my-meteor-app.com</mark>;</code>
+<code>        access_log /var/log/nginx/my-meteor-app.access;</code>
+<code>        location / {</code>
+<code>                proxy_pass http://<mark class="important">my_meteor_app</mark>/;</code>
+<code>                proxy_http_version 1.1;</code>
+<code>                proxy_set_header Upgrade $http_upgrade;</code>
+<code>                proxy_set_header Connection "upgrade";</code>
+<code>                proxy_set_header Host $http_host;</code>
+<code>                proxy_set_header X-Real-IP $remote_addr;</code>
+<code>                proxy_set_header X-Forward-For $proxy_add_x_forwarded_for;</code>
+<code>                proxy_set_header X-Forward-Proto http;</code>
+<code>                proxy_set_header X-Nginx-Proxy true;</code>
+<code>                proxy_redirect off;</code>
+<code>        }</code>
+<code>}</code>
+        </pre>
+		<style>
+			#nginxmyhost p {margin-top: -30px}
+			#nginxmyhost pre {margin-top: -30px}
+			#nginxmyhost pre, #nginxmyhost pre code {
+				font-size: 15px;
+                line-height: 19px;
+				}
+        </style>
+	</div></section>
+    
+	<section class="slide" id="nginxreload"><div>
+        <img src="pictures/morea.jpg" class="imgmorea">
+        <p class="imgmorea">Conception et infogérance d’infrastructures critiques</p>
+		<h2>NGinX : suite et fin...</h2>
+		<ol>
+			<li>Création du lien symbolique activant notre vhost
+            <pre>
+                <code>$ cd /etc/nginx/sites-enabled</code>
+                <code>$ ln -s /etc/nginx/sites-available/my-meteor-app.com</code>
+            </pre></li>
+			<li class="next">Redémarrage de NGinX
+        <pre>
+            <code>$ /etc/init.d/nginx restart</code>
+        </pre>
+            </li>
+            <li class="next">Nous devons maintenant lancer notre application sur le 58080 !</li>
+		</ol>
+        
+		<style>
+			#nginxreload pre{
+				font-size: 18px;
+                line-height: 35px;
+                margin-top: 0px;
+                margin-left: 50px;
+				}
+			#nginxreload code{
+                line-height: 35px;
+            }
+            #nginxreload p {
+                margin-top: -30px;
+            }
+        </style>
+	</div></section>
+    
+	<section class="slide" id="forever"><div>
+        <img src="pictures/morea.jpg" class="imgmorea">
+        <p class="imgmorea">Conception et infogérance d’infrastructures critiques</p>
+		<h2>Forever : relance en cas de crash</h2>
+		<ol>
+			<li>Installation de <a href="https://github.com/nodejitsu/forever" target="_blank">Forever</a> et utilisation
+            <pre>
+                <code>$ npm install forever</code>
+                <code>$ forever my_node_app.js</code>
+            </pre></li>
+			<li class="next">Lister les applications qui tournent avec Forever
+        <pre>
+            <code>$ forever list
+0 my_node_app.js [ 24597, 24596 ]</code>
+        </pre>
+            </li>
+            <li class="next">Arrêter une application
+        <pre>
+            <code>$ forever stop &lt;id></code>
+        </pre></li>
+		</ol>
+        <p style="font-size: 18px; margin-top: -40px;">Il existe une alternative à Forever : <a href="https://github.com/Unitech/pm2" target="_blank">PM2</a>.</p>
+		<style>
+            #forever ol {
+                line-height: 30px
+            }
+			#forever pre{
+				font-size: 18px;
+                line-height: 35px;
+                margin-top: 0px;
+                margin-left: 50px;
+				}
+			#forever code{
+                line-height: 35px;
+            }
+            #forever p {
+                margin-top: -30px;
+            }
+        </style>
+	</div></section>
+    
+	<section class="slide" id="bundle"><div>
+		<h2>Meteor : bundle sur la machine de DEV</h2>
+        <p style="font-size:21px;">Meteor n'est pas installé sur la machine de PROD, uniquement sur la machine de DEV.</p>
+		<ol>
+			<li>Installation de <a href="http://blog.modulus.io/demeteorizer" target="_blank">demeteorizer</a>
+            <pre>
+                <code>$ npm install -g demeteorizer</code>
+            </pre></li>
+			<li class="next">"demeteorizer" votre application, <i>i.e.</i> en faire une application node only
+        <pre>
+            <code>$ mkdir -p ~/Programming/Demeteorized/testapp</code>
+<code>cd ~/Programming/testapp</code>
+<code>demeteorizer -o ~/Programming/Demeteorized/testapp</code>
+        </pre>
+            </li>
+            <li class="next">Transférer le tout sur le serveur de PROD
+        <pre>
+            <code>$ scp -r ~/Programming/Demeteorized/ <mark class="important">you@yourdomaine.com</mark>:/home/<mark class="important">you</mark>/www/</code>
+        </pre></li>
+		</ol>
+		<style>
+            #bundle ol {
+                line-height: 30px
+            }
+			#bundle pre{
+				font-size: 18px;
+                line-height: 35px;
+                margin-top: 0px;
+                margin-left: 50px;
+				}
+			#bundle code{
+                line-height: 35px;
+            }
+            #bundle p {
+                margin-top: -30px;
+                margin-bottom: 20px;
+            }
+        </style>
+	</div></section>
+    
+	<section class="slide" id="myscript"><div>
+        <img src="pictures/morea.jpg" class="imgmorea">
+        <p class="imgmorea">Conception et infogérance d’infrastructures critiques</p>
+		<h2 style="margin-top: -50px;">Un script pour démarrer l'application</h2>
+        <pre class='brush:php;toolbar: false;ruler: true;'><code>echo "[+] Starting Meteor App!"
+if [ "$1" = "" ]
+        then
+        echo "[-] Usage: &lt;dir&gt;"
+        echo "[!] Path needed for the containing project folder"
+        exit 0
+fi
+if [ ! -d $1 ]
+        then
+        echo "[!] Could not enter the dir: $1"
+        exit 0
+fi
+cd $1
+echo "[+] Running NPM"
+<span class="important">npm install</span> &amp;&gt;/dev/null
+echo "[+] Setting environment variables"
+<span class="important">export MONGO_URL</span>='mongodb://<span class="important">testuser</span>:<span class="important">testuserpass</span>@127.0.0.1:27017/<span class="important">testdatabase</span>'
+<span class="important">export PORT</span>=<span class="important" style="font-weight: bold;">58080</span>
+<span class="important">export ROOT_URL</span>='http://localhost/'
+echo "[+] Starting Node Server"
+<span class="important">forever</span> main.js</code></pre>
+        <p>Utilisation :</p>
+        <pre id="myscriptpre"><code>$ # Enregistrer le script dans ~/www
+$ cd ~/www
+$ chmod +x ./start_app.sh
+$ ./start_app.sh ./testapp</code></pre>
+		<style>
+			#myscript .important {color: red;}
+			#myscript pre{
+				font-size: 14px;
+                line-height: 20px;
+                margin-top: 0px;
+				}
+			#myscript #myscriptpre {margin-top: -30px;}
+			#myscript code{
+                line-height: 16px;
+                margin-top: -20px;
+            }
+            #myscript p {
+                margin-top: -20px;
+            }
+        </style>
+	</div></section>
+	<section class="slide"><div>
+		<h2>Pour débuter</h2>
+		<ol  style="position:absolute;top:0px;left:120px;">
+			<li>Monitoring CPU & RAM avec htop
+            <img src="pictures/htop.png" style="position: relative; left:50px;top:110px; width:400px;">
+            <ol>
+                <li>$ apt-get install htop</li>
+                <li>$ htop</li>
+                <li>Activer le filtre avec la touche F4 (ex: taper node)</li>
+            </ol></li>
+			<li class="next">Backup MongoDB : parce que vos données sont importantes !
+            <ol>
+                <li><a href="https://github.com/vigeek/mongosback" target="_blank">mongosback</a></li>
+                <li>ou sa version modifiée "<a href="https://github.com/pascoual/mongosback" target="_blank">no root</a>"</li>
+                <li>l'utilisateur doit avoir les droits <mark class="important">userAdmin</mark> sur la base backupée</li>
+            </ol></li>
+		</ol>
+	</div></section>
+    <section class="slide" id="morea"><div>
+        <img src="pictures/morea.jpg">
+        <p class="moreapitch">Pour héberger vos applications Meteor critiques</p>
+        <p class="moreaprez"><a href="http://www.morea.fr" target="_blank">MOREA</a> vous accompagne dès la conception de votre architecture technique jusqu’à l’infogérance de vos services ou applications critiques. Morea travaille principalement avec des technologies Open Source.<br>Ils font confiance à Morea :</p>
+        <img src="pictures/morea_clients.jpg" style="height: 55%; margin-left:120px; margin-top: -50px">
+		<footer>
+			Typewriter etsy messenger bag fingerstache.
+		</footer>
+        <style>
+            #morea img {
+                margin-top: -60px;
+                margin-bottom: -75px;
+                margin-left: 0px
+            }
+            #morea .moreaprez {
+                font-size: 17px;
+                margin-top: -30px;
+                margin-left: 10px
+            }
+            #morea p.moreapitch {
+                font-size: 35px;
+                margin-top: -20px;
+                margin-left: 10px
+            }
+        </style>
+	</div></section>
+	<section class="slide cover" id="Picture"><div>
+		<h2>Merci !</h2>
+		<img src="pictures/slide18.jpg" alt="">
+        
+        <p class="sourceLinks">Thanks to <a href="http://www.andrehonsberg.com/" target="_blank">andrehonsberg.com</a> for his articles !</p>
+		<style>
+			#Picture h2 {
+				color:#FFF;
+            }
+            img.imgmorea {
+                position: absolute;
+                width: 180px;
+                bottom: 5px;
+                right: 20px
+            }
+            p.imgmorea {
+                position: absolute;
+                bottom: -50px;
+                right: 20px;
+                font-size: 20px;
+            }
+            .sourceLinks {
+                font-size: 20px;
+                color: white;
+                background-color: #000;
+                border-radius: 10px; 
+                -moz-border-radius: 10px; 
+                -webkit-border-radius: 10px;
+                border: 10px solid #000;
+                opacity: 0.55; 
+                position: absolute;
+                bottom: -30px;
+                right: 20px
+            }
+		</style>
+	</div></section>
+	<p class="badge"><a href="http://www.morea.fr"><strong>www.morea.fr</strong></a></p>
+	<!--
+		To hide progress bar from entire presentation
+		just remove “progress” element.
+		-->
+	<div class="progress"><div></div></div>
+	<script src="shower/shower.min.js"></script>
+	<!-- Copyright © 2013 Pascal Richier, Easy Paddock SAS. -->
+</body>
+</html>
