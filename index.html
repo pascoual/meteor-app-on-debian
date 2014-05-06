@@ -90,7 +90,7 @@
             <code>   # Sélection de la base de données admin</code>
             <code>   db = db.getSiblingDB('admin')</code>
             <code>   # Ajout du compte administrateur</code>
-            <code>   db.addUser({user: "adminuser", pwd: "<mark class="important">myPWD</mark>", roles: ["userAdminAnyDatabase"<!--mark class="important">, "userAdmin"</mark-->]})</code>
+            <code>   db.addUser({user: "adminuser", pwd: "<mark class="important">myPWD</mark>", roles: ["userAdminAnyDatabase", "clusterAdmin", "readAnyDatabase"<!--mark class="important">, "userAdmin"</mark-->]})</code>
             <code>   # Quitter le shell </code>
             <code>   exit</code>
         </pre>
